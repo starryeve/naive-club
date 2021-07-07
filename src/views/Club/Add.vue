@@ -27,15 +27,19 @@
       <n-input placeholder="请输入会员加入社团的年份"
                v-model:value="form.session" />
     </n-form-item>
-    <n-button type="primary">添加</n-button>
+    <n-button type="primary"
+              @click="handleAdd">添加</n-button>
   </n-card>
 </template>
 
 <script>
 import { ref } from 'vue'
+import { useMessage, useDialog } from 'naive-ui'
+import request from '../../networks/index'
 export default {
   setup () {
-
+    const dialog = useDialog()
+    const info = useMessage()
     const form = ref({
       member_name: null,
       phone: null,
@@ -43,19 +47,43 @@ export default {
       position: null,
       student_id: null,
       session: null,
-      club_id: null
+      club_id: sessionStorage.getItem('id')
     })
 
-    const add = () => {
-      console.log(loginForm);
-    }
 
+    const handleAdd = () => {
+      dialog.success({
+        title: '确认',
+        content: '你要添加这个人吗？',
+        positiveText: '是的',
+        negativeText: '不要了',
+        onPositiveClick: () => {
+          request({
+            url: 'member/addMember',
+            method: 'post',
+            data: form.value
+          }).then(res => {
+            info.success('添加成功')
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000)
+
+          }).catch(err => {
+            console.log(err);
+            info.error('添加会员失败，请检查是否是社联允许招新的年份，或学生学号是否出错等')
+          })
+        },
+        onNegativeClick: () => {
+          info.success('不确定')
+        }
+      })
+    }
 
 
     return {
 
       form,
-      add,
+      handleAdd,
 
 
     }

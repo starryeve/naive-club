@@ -2,111 +2,170 @@
   <n-card title="社团总览"
           style="margin-bottom: 16px;">
     <n-tabs type="line">
-      <n-tab-pane name="unaudited"
-                  tab="未审核">
+      <n-tab-pane name="audited"
+                  tab="已入驻">
         <n-data-table :columns="columns"
-                      :data="data"
+                      :data="clubs.audited"
                       :pagination="pagination"
-                      :row-key="obj => obj.age" />
+                      :row-key="obj => obj.club_id" />
+      </n-tab-pane>
+      <n-tab-pane name="unaudited"
+                  tab="待审核">
+        <n-data-table :columns="auditColumns"
+                      :data="clubs.unaudited"
+                      :pagination="pagination"
+                      :row-key="obj => obj.club_id" />
       </n-tab-pane>
       <n-tab-pane name="disallowed"
-                  tab="不通过">Hey Jude</n-tab-pane>
-      >
+                  tab="不通过">
+        <n-data-table :columns="columns"
+                      :data="clubs.disallowed"
+                      :pagination="pagination"
+                      :row-key="obj => obj.club_id" />
+      </n-tab-pane>
     </n-tabs>
   </n-card>
 </template>
 <script>
-import { h, defineComponent } from 'vue'
-import { NTag, NButton, useMessage } from 'naive-ui'
+import { h, defineComponent, onMounted, toRefs, reactive } from 'vue'
+import { NButton, useMessage } from 'naive-ui'
+import request from '../../networks/index'
 
-const createColumns = ({ sendMail }) => {
+const createColumns = () => {
   return [
     {
-      title: 'Name',
-      key: 'name'
+      title: '社团名称',
+      key: 'club_name'
     },
     {
-      title: 'Age',
-      key: 'age'
+      title: '社长',
+      key: 'president'
     },
     {
-      title: 'Address',
-      key: 'address'
+      title: '社长学号',
+      key: 'president_id'
     },
     {
-      title: 'Tags',
-      key: 'tags',
+      title: '指导老师',
+      key: 'teacher_name'
+    },
+    {
+      title: '指导老师工号',
+      key: 'teacher_id'
+    }
+  ]
+}
+const createAuditColumns = ({ allow, disallow }) => {
+  return [
+    {
+      title: '社团名称',
+      key: 'club_name'
+    },
+    {
+      title: '社长',
+      key: 'president'
+    },
+    {
+      title: '社长学号',
+      key: 'president_id'
+    },
+    {
+      title: '指导老师',
+      key: 'teacher_name'
+    },
+    {
+      title: '指导老师工号',
+      key: 'teacher_id'
+    },
+    {
+      title: '审核',
+      key: 'audit',
       render (row) {
-        const tags = row.tags.map((tagKey) => {
-          return h(
-            NTag,
-            {
-              style: {
-                marginRight: '6px'
-              },
-              type: 'info'
-            },
-            {
-              default: () => tagKey
-            }
-          )
-        })
-        return tags
-      }
-    },
-    {
-      title: 'Action',
-      key: 'actions',
-      render (row) {
-        return h(
+        return [h(
           NButton,
           {
             size: 'small',
-            onClick: () => sendMail(row)
+            onClick: () => allow(row)
           },
-          { default: () => 'Send Email' }
-        )
+          { default: () => '通过' },
+        ), h(
+          NButton,
+          {
+            size: 'small',
+            onClick: () => disallow(row)
+          },
+          { default: () => '不通过' },
+
+        )]
       }
     }
   ]
 }
-const createData = () => [
-  {
-    aaa: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-    tags: ['nice', 'developer']
-  },
-  {
-    aaa: '2',
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-    tags: ['wow']
-  },
-  {
-    aaa: '1',
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sidney No. 1 Lake Park',
-    tags: ['cool', 'teacher']
-  }
-]
+
 
 export default defineComponent({
   setup () {
-    const message = useMessage()
+    const info = useMessage()
+    let data = reactive({
+      clubs: []
+    })
+
+    onMounted(() => {
+      request({
+        url: '/club/getClubList',
+        method: 'get'
+      }).then(res => {
+        const { data: { clubs } } = res;
+        data.clubs = clubs;
+        console.log(clubs);
+        console.log(data);
+
+      }).catch(err => {
+        console.log(err);
+      })
+    })
     return {
-      data: createData(),
-      columns: createColumns({
-        sendMail (rowData) {
-          message.info('send mail to ' + rowData.name)
+
+      columns: createColumns(),
+      auditColumns: createAuditColumns({
+        allow (rowData) {
+          request({
+            url: '/club/auditClub',
+            method: 'put',
+            data: {
+              club_id: rowData.club_id,
+              status: 1
+            }
+          }).then(res => {
+            info.success('审核成功')
+            window.location.reload()
+
+          }).catch(err => {
+            info.success('审核成功')
+          })
+        },
+        disallow (rowData) {
+          request({
+            url: '/club/auditClub',
+            method: 'put',
+            data: {
+              club_id: rowData.club_id,
+              status: 2
+            }
+          }).then(res => {
+            info.success('审核成功')
+            window.location.reload()
+
+          }).catch(err => {
+            info.success('审核成功')
+          })
         }
       }),
       pagination: {
         pageSize: 10
-      }
+      },
+      ...toRefs(data)
+
     }
   }
 })

@@ -15,6 +15,7 @@ import originAxios, { AxiosRequestConfig } from 'axios'
 // 1.创建axios实例，设置接口基地址和超时
 const instance = originAxios.create({
   baseURL: 'http://localhost:3000/',
+  // baseURL: 'http://49.234.82.226:3306/',
   timeout: 60000 // request timeout
 })
 

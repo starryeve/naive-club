@@ -10,6 +10,7 @@
                         show-trigger
                         @collapse="collapsed = true"
                         @expand="collapsed = false">
+          <n-button @click="logout">退出登录</n-button>
           <n-menu :collapsed="collapsed"
                   :collapsed-width="64"
                   :collapsed-icon-size="22"
@@ -89,7 +90,7 @@ export default {
   setup () {
     const router = useRouter()
     let activeKey = ref(null);
-    let collapsed = ref(true);
+    let collapsed = ref(false);
     return {
       activeKey,
       collapsed,
@@ -99,6 +100,10 @@ export default {
         router.push({
           path: key
         })
+      },
+      logout: () => {
+        router.push('/login');
+        sessionStorage.clear();
       }
     }
   }

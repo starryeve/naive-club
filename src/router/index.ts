@@ -102,11 +102,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'AllClubs',
         component: () => import('../views/Union/AllClubs.vue')
       },
-      {
-        path: 'audit',
-        name: 'Audit',
-        component: () => import('../views/Union/Audit.vue')
-      },
+
       {
         path: 'all-activities',
         name: 'AllActivities',

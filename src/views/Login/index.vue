@@ -20,7 +20,7 @@
             <n-input placeholder="请输入账号"
                      v-model:value="loginForm.account" />
           </n-form-item>
-          <n-form-item label="账号："
+          <n-form-item label="密码："
                        path="account">
             <n-input placeholder="请输入密码"
                      v-model:value="loginForm.password" />
@@ -98,11 +98,11 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { onMounted } from "vue"
 import { useMessage, useDialog } from 'naive-ui'
-import request from '../../networks/index'
 import { useRouter } from 'vue-router'
+import request from '../../networks/index'
 export default {
 
   setup (props) {
@@ -135,7 +135,7 @@ export default {
           }).then(res => {
             const { data: { id, token, role, message } } = res
 
-            if (id) {
+            if (token) {
               console.log(id);
               info.success('登录成功')
               sessionStorage.setItem('id', id)
@@ -154,11 +154,11 @@ export default {
 
           }).catch(err => {
             console.log(err);
-            message.error('登录失败')
+            info.error('登录失败')
           })
         },
         onNegativeClick: () => {
-          message.success('不确定')
+          info.success('不确定')
         }
       })
     }
@@ -180,10 +180,23 @@ export default {
         positiveText: '确定',
         negativeText: '不要了',
         onPositiveClick: () => {
-          message.success('确定')
+          request({
+            url: 'register',
+            method: 'post',
+            data: registerForm.value
+          }).then(res => {
+            info.success('注册成功，请耐心等待审核')
+            setTimeout(() => {
+              window.location.reload()
+            })
+
+          }).catch(err => {
+            console.log(err);
+            info.error('注册申请提交失败, 请检查社长学号或教师工号是否有误')
+          })
         },
         onNegativeClick: () => {
-          message.success('不确定')
+          info.info('不确定')
         }
       })
     }

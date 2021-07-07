@@ -14,8 +14,10 @@
                v-model:value="form.time" />
     </n-form-item>
     <n-form-item label="经费：">
-      <n-input placeholder="请输入活动经费"
-               v-model:value="form.budget" />
+      <n-input-number placeholder="请输入活动经费，0~999"
+                      v-model:value="form.budget"
+                      :min="0"
+                      :max="9999" />
     </n-form-item>
     <n-form-item label="主题：">
       <n-input placeholder="请输入活动主题"
@@ -25,31 +27,60 @@
       <n-input placeholder="请输入活动负责人"
                v-model:value="form.head_name" />
     </n-form-item>
-    <n-form-item label="phone：">
+    <n-form-item label="手机号：">
       <n-input placeholder="请输入负责人手机号"
                v-model:value="form.phone" />
     </n-form-item>
-    <n-button type="primary">添加</n-button>
+    <n-button type="primary"
+              @click="handleApply">添加</n-button>
   </n-card>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref } from 'vue';
+import { useDialog, useMessage } from 'naive-ui'
+import request from '../../networks/index'
 export default {
   setup () {
-
+    const dialog = useDialog();
+    const info = useMessage();
     const form = ref({
-      member_name: null,
+      activity_name: null,
+      place: null,
+      time: null,
+      budget: null,
+      title: null,
+      head_name: null,
       phone: null,
-      gender: null,
-      position: null,
-      student_id: null,
-      session: null,
-      club_id: null
+      comment: '',
+      status: 0,
+      club_id: sessionStorage.getItem('id')
     })
 
-    const add = () => {
-      console.log(loginForm);
+    const handleApply = () => {
+      dialog.success({
+        title: '确认',
+        content: '你要申请这个活动吗？',
+        positiveText: '是的',
+        negativeText: '不要了',
+        onPositiveClick: () => {
+          request({
+            url: 'activity/applyActivity',
+            method: 'post',
+            data: form.value
+          }).then(res => {
+            console.log(res);
+            info.success('已提交申请')
+            window.location.reload();
+          }).catch(err => {
+            console.log(err);
+            info.error('申请失败')
+          })
+        },
+        onNegativeClick: () => {
+          info.success('不确定')
+        }
+      })
     }
 
 
@@ -57,7 +88,7 @@ export default {
     return {
 
       form,
-      add,
+      handleApply
 
 
     }

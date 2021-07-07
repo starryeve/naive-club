@@ -2,95 +2,68 @@
   <n-card title="成员列表"
           style="margin-bottom: 16px;">
     <n-data-table :columns="columns"
-                  :data="data"
+                  :data="members"
                   :pagination="pagination"
-                  :row-key="obj => obj.age" />
+                  :row-key="obj => obj.member_id" />
   </n-card>
 </template>
 
 <script>
-import { h, defineComponent, onMounted } from 'vue'
-import { NTag, NButton, useMessage } from 'naive-ui'
+import { h, defineComponent, onMounted, reactive, toRefs } from 'vue'
+import { NButton, useMessage } from 'naive-ui'
 import request from '../../networks/index'
-const createColumns = ({ sendMail }) => {
+const createColumns = ({ deleteMember }) => {
   return [
     {
-      title: 'Name',
-      key: 'name'
+      title: '姓名',
+      key: 'member_name'
     },
     {
-      title: 'Age',
-      key: 'age'
+      title: '手机',
+      key: 'phone'
     },
     {
-      title: 'Address',
-      key: 'address'
+      title: '性别',
+      key: 'gender',
     },
     {
-      title: 'Tags',
-      key: 'tags',
-      render (row) {
-        const tags = row.tags.map((tagKey) => {
-          return h(
-            NTag,
-            {
-              style: {
-                marginRight: '6px'
-              },
-              type: 'info'
-            },
-            {
-              default: () => tagKey
-            }
-          )
-        })
-        return tags
-      }
+      title: '职位',
+      key: 'position',
     },
     {
-      title: 'Action',
+      title: '学号',
+      key: 'student_id',
+    },
+    {
+      title: '加入年份',
+      key: 'session',
+    },
+    {
+      title: '操作',
       key: 'actions',
       render (row) {
         return h(
           NButton,
           {
             size: 'small',
-            onClick: () => sendMail(row)
+            type: 'warning',
+            onClick: () => deleteMember(row)
           },
-          { default: () => 'Send Email' }
+          { default: () => '删除' }
         )
       }
     }
   ]
 }
 
-const createData = () => [
-  {
-    aaa: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-    tags: ['nice', 'developer']
-  },
-  {
-    aaa: '2',
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-    tags: ['wow']
-  },
-  {
-    aaa: '1',
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sidney No. 1 Lake Park',
-    tags: ['cool', 'teacher']
-  }
-]
+
 
 export default defineComponent({
   setup () {
-    const message = useMessage()
+    const info = useMessage()
+    const data = reactive({
+      members: []
+    })
     onMounted(() => {
       request({
         url: '/member/getMemberListByClub',
@@ -99,16 +72,28 @@ export default defineComponent({
           club_id: sessionStorage.getItem('id')
         }
       }).then(res => {
-        console.log(res);
+        const { data: { members } } = res
+        data.members = members
       }).catch(err => {
         console.log(err);
       })
     })
     return {
-      data: createData(),
+      ...toRefs(data),
       columns: createColumns({
-        sendMail (rowData) {
-          message.info('send mail to ' + rowData.name)
+        deleteMember (rowData) {
+          request({
+            url: '/member/deleteMember',
+            method: 'post',
+            data: {
+              member_id: rowData.member_id
+            }
+          }).then(res => {
+            info.success('删除成功')
+            window.location.reload()
+          }).catch(err => {
+            info.success('出错了')
+          })
         }
       }),
       pagination: {

@@ -10,6 +10,7 @@
                         show-trigger
                         @collapse="collapsed = true"
                         @expand="collapsed = false">
+          <n-button @click="logout">退出登录</n-button>
           <n-menu :collapsed="collapsed"
                   :collapsed-width="64"
                   :collapsed-icon-size="22"
@@ -50,11 +51,7 @@ const menuOptions = [
     key: 'all-activities',
     icon: renderIcon(BookIcon),
   },
-  {
-    label: '社团审核',
-    key: 'audit',
-    icon: renderIcon(BookIcon)
-  },
+
   {
     label: '账号设置',
     key: 'u-setting',
@@ -80,6 +77,10 @@ export default {
         router.push({
           path: key
         })
+      },
+      logout: () => {
+        router.push('/login');
+        sessionStorage.clear();
       }
     }
   }

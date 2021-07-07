@@ -65,7 +65,13 @@ export default defineComponent({
   .n-space > div {
     height: 100%;
   }
+  .n-menu {
+    transform: translateY(70px);
+  }
   .n-layout {
     height: 100%;
+  }
+  .n-layout-sider-scroll-container .n-button {
+    transform: translate(69px, 50px);
   }
 </style>

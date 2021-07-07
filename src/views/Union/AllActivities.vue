@@ -3,110 +3,229 @@
           style="margin-bottom: 16px;">
     <n-tabs type="line">
       <n-tab-pane name="unaudited"
-                  tab="未审核">
-        <n-data-table :columns="columns"
-                      :data="data"
+                  tab="待审核">
+        <n-data-table :columns="auditColumns"
+                      :data="activities.unaudited"
                       :pagination="pagination"
-                      :row-key="obj => obj.age" />
+                      :row-key="obj => obj.club_id" />
+      </n-tab-pane>
+      <n-tab-pane name="audited"
+                  tab="已通过">
+        <n-data-table :columns="columns"
+                      :data="activities.audited"
+                      :pagination="pagination"
+                      :row-key="obj => obj.club_id" />
       </n-tab-pane>
       <n-tab-pane name="disallowed"
-                  tab="不通过">Hey Jude</n-tab-pane>
-      >
+                  tab="不通过">
+        <n-data-table :columns="columns"
+                      :data="activities.disallowed"
+                      :pagination="pagination"
+                      :row-key="obj => obj.club_id" />
+      </n-tab-pane>
+      <n-tab-pane name="held"
+                  tab="已举办">
+        <n-data-table :columns="commentColumns"
+                      :data="activities.held"
+                      :pagination="pagination"
+                      :row-key="obj => obj.club_id" />
+      </n-tab-pane>
     </n-tabs>
   </n-card>
 </template>
 <script>
-import { h, defineComponent } from 'vue'
-import { NTag, NButton, useMessage } from 'naive-ui'
+import { h, defineComponent, onMounted, toRefs, reactive } from 'vue'
+import { NButton, useMessage } from 'naive-ui'
+import request from '../../networks/index'
 
-const createColumns = ({ sendMail }) => {
+const createColumns = () => {
   return [
     {
-      title: 'Name',
-      key: 'name'
+      title: '活动',
+      key: 'activity_name'
     },
     {
-      title: 'Age',
-      key: 'age'
+      title: '地点',
+      key: 'place'
     },
     {
-      title: 'Address',
-      key: 'address'
+      title: '时间',
+      key: 'time'
     },
     {
-      title: 'Tags',
-      key: 'tags',
+      title: '经费',
+      key: 'budget'
+    },
+    {
+      title: '主题',
+      key: 'title'
+    },
+    {
+      title: '负责人',
+      key: 'head_name'
+    },
+    {
+      title: '负责人手机',
+      key: 'phone'
+    },
+
+  ]
+}
+const createCommentColumns = () => {
+  return [
+    {
+      title: '活动',
+      key: 'activity_name'
+    },
+    {
+      title: '地点',
+      key: 'place'
+    },
+    {
+      title: '时间',
+      key: 'time'
+    },
+    {
+      title: '经费',
+      key: 'budget'
+    },
+    {
+      title: '主题',
+      key: 'title'
+    },
+    {
+      title: '负责人',
+      key: 'head_name'
+    },
+    {
+      title: '负责人手机',
+      key: 'phone'
+    },
+    {
+      title: '教师评价',
+      key: 'comment'
+    }
+  ]
+}
+const createAuditColumns = ({ allow, disallow }) => {
+  return [
+    {
+      title: '活动',
+      key: 'activity_name'
+    },
+    {
+      title: '地点',
+      key: 'place'
+    },
+    {
+      title: '时间',
+      key: 'time'
+    },
+    {
+      title: '经费',
+      key: 'budget'
+    },
+    {
+      title: '主题',
+      key: 'title'
+    },
+    {
+      title: '负责人',
+      key: 'head_name'
+    },
+    {
+      title: '负责人手机',
+      key: 'phone'
+    },
+    {
+      title: '审核',
+      key: 'audit',
       render (row) {
-        const tags = row.tags.map((tagKey) => {
-          return h(
-            NTag,
-            {
-              style: {
-                marginRight: '6px'
-              },
-              type: 'info'
-            },
-            {
-              default: () => tagKey
-            }
-          )
-        })
-        return tags
-      }
-    },
-    {
-      title: 'Action',
-      key: 'actions',
-      render (row) {
-        return h(
+        return [h(
           NButton,
           {
             size: 'small',
-            onClick: () => sendMail(row)
+            onClick: () => allow(row)
           },
-          { default: () => 'Send Email' }
-        )
+          { default: () => '通过' },
+        ), h(
+          NButton,
+          {
+            size: 'small',
+            onClick: () => disallow(row)
+          },
+          { default: () => '不通过' },
+
+        )]
       }
     }
   ]
 }
-const createData = () => [
-  {
-    aaa: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-    tags: ['nice', 'developer']
-  },
-  {
-    aaa: '2',
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-    tags: ['wow']
-  },
-  {
-    aaa: '1',
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sidney No. 1 Lake Park',
-    tags: ['cool', 'teacher']
-  }
-]
+
 
 export default defineComponent({
   setup () {
-    const message = useMessage()
+    const info = useMessage()
+    let data = reactive({
+      activities: []
+    })
+
+    onMounted(() => {
+      request({
+        url: '/activity/getActivityList',
+        method: 'get'
+      }).then(res => {
+        const { data: { activities } } = res;
+        data.activities = activities;
+        console.log(activities);
+        console.log(data);
+
+      }).catch(err => {
+        console.log(err);
+      })
+    })
     return {
-      data: createData(),
-      columns: createColumns({
-        sendMail (rowData) {
-          message.info('send mail to ' + rowData.name)
+      columns: createColumns(),
+      commentColumns: createCommentColumns(),
+      auditColumns: createAuditColumns({
+        allow (rowData) {
+
+          request({
+            url: '/activity/auditActivity',
+            method: 'put',
+            data: {
+              activity_id: rowData.activity_id,
+              status: 1
+            }
+          }).then(res => {
+            info.success('审核成功')
+            window.location.reload()
+          }).catch(err => {
+            info.success('审核失败')
+          })
+        },
+        disallow (rowData) {
+
+          request({
+            url: '/activity/auditActivity',
+            method: 'put',
+            data: {
+              activity_id: rowData.activity_id,
+              status: 1
+            }
+          }).then(res => {
+            info.success('审核成功')
+            window.location.reload()
+
+          }).catch(err => {
+            info.success('审核成功')
+          })
         }
       }),
       pagination: {
         pageSize: 10
-      }
+      },
+      ...toRefs(data)
     }
   }
 })

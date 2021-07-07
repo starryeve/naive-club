@@ -1,203 +1,65 @@
 <template>
-  <n-card title="我的社团"
+  <n-card title="社团总览"
           style="margin-bottom: 16px;">
-    <n-tabs type="line">
-      <n-tab-pane name="oasis"
-                  tab="Oasis">
-        <n-card :title="a.activity_name"
-                hoverable
-                v-for="a in activities.unaudited">
-          {{a.place}}
-          {{a.budget}}
-          {{a.title}}
-        </n-card>
-      </n-tab-pane>
-      <n-tab-pane name="the beatles"
-                  tab="the Beatles">Hey Jude</n-tab-pane>
-      <n-tab-pane name="jay chou"
-                  tab="周杰伦">七里香</n-tab-pane>
-    </n-tabs>
+    <n-data-table :columns="columns"
+                  :data="clubs"
+                  :pagination="pagination"
+                  :row-key="obj => obj.club_id" />
   </n-card>
 </template>
 <script>
-const activities = {
-  unaudited: [
+import { h, defineComponent, onMounted, toRefs, reactive } from 'vue'
+import { NButton, useMessage } from 'naive-ui'
+import request from '../../networks/index'
+
+const createColumns = () => {
+  return [
     {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
+      title: '社团名称',
+      key: 'club_name'
     },
     {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
+      title: '社长',
+      key: 'president'
     },
     {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    },
-    {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
+      title: '社长学号',
+      key: 'president_id'
     }
-  ],
-  allowed: [
-    {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }
-  ],
-  disallowed: [
-    {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }, {
-      activity_id: 0,
-      activity_name: '阴雨天音乐节',
-      place: '大操场',
-      budget: 200,
-      club_id: 1,
-      title: '音乐',
-      number: 100,
-      head_name: '曾繁浩',
-      phone: 17625252525,
-      status: 0,
-      comment: '！好'
-    }
-  ],
-  held: [
 
   ]
 }
-export default {
+
+export default defineComponent({
   setup () {
+    const info = useMessage()
+    let data = reactive({
+      clubs: []
+    })
+
+    onMounted(() => {
+      request({
+        url: '/club/getGuideClubList',
+        method: 'post',
+        data: {
+          teacher_id: sessionStorage.getItem('id')
+        }
+      }).then(res => {
+        const { data: { clubs } } = res;
+        data.clubs = clubs;
+      }).catch(err => {
+        console.log(err);
+      })
+    })
     return {
-      activities
+
+      columns: createColumns(),
+      pagination: {
+        pageSize: 10
+      },
+      ...toRefs(data)
+
     }
   }
-}
+})
 </script>
